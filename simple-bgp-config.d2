@@ -31,14 +31,14 @@ cluster: {
   }
 
   workers_bgp: {
-    label: "Workers with BGP (AS 64512)\n✅ Running UDN Workloads"
+    label: "Workers with BGP (AS 64512)\n✅ Running UDN Workloads\nAdvertising: 192.168.100.0/24"
     style.fill: "#388e3c"
     style.font-color: white
 
     grid-rows: 3
-    worker1: "worker-1\n10.0.1.21\n📦 VMs | 🔷 UDN Pods"
-    worker2: "worker-2\n10.0.1.22\n📦 VMs | 🔷 UDN Pods"
-    worker3: "worker-3\n10.0.1.23\n📦 VMs | 🔷 UDN Pods"
+    worker1: "worker-1\n10.0.1.21\n📦 VMs | 🔷 UDN Pods\n→ Advertises 192.168.100.0/24"
+    worker2: "worker-2\n10.0.1.22\n📦 VMs | 🔷 UDN Pods\n→ Advertises 192.168.100.0/24"
+    worker3: "worker-3\n10.0.1.23\n📦 VMs | 🔷 UDN Pods\n→ Advertises 192.168.100.0/24"
   }
 
   workers_no_bgp: {
@@ -50,6 +50,19 @@ cluster: {
     worker4: "worker-4\n10.0.1.24\n(No UDN)"
     worker5: "worker-5\n10.0.1.25\n(No UDN)"
   }
+
+  udn: {
+    label: "User Defined Network (UDN)"
+    style.fill: "#fff3e0"
+    style.stroke: "#f57c00"
+    style.stroke-width: 3
+
+    udn_net: "UDN Network\n192.168.100.0/24\n\nEach BGP worker advertises:\n→ 192.168.100.0/24 to ToR" {
+      shape: hexagon
+      style.fill: "#ff9800"
+      style.font-color: white
+    }
+  }
 }
 
 # Network connection (no BGP)
@@ -60,9 +73,16 @@ switch -> cluster.masters: "Network\n(No BGP)" {
 }
 
 # BGP Peering (BGP-enabled workers only)
-switch -> cluster.workers_bgp: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+switch -> cluster.workers_bgp: "eBGP\n← 192.168.100.0/24\n→ 0.0.0.0/0 (default)" {
   style.stroke: "#4caf50"
   style.stroke-width: 4
+}
+
+# UDN to BGP workers
+cluster.udn -> cluster.workers_bgp: "UDN pods/VMs\nrun on BGP workers" {
+  style.stroke: "#ff9800"
+  style.stroke-width: 2
+  style.stroke-dash: 3
 }
 
 # Network only (No BGP workers)
@@ -80,22 +100,22 @@ config: |md
   - Subnet: 10.0.1.0/24
   - All nodes on same CIDR
 
-  **Switch:**
+  **Switch (ToR):**
   - AS 65001
   - Config: neighbor default-originate
-  - Receives UDN routes from workers (←)
-  - Advertises default route to workers (→)
+  - Receives: 192.168.100.0/24 from each BGP worker
+  - Advertises: 0.0.0.0/0 (default route) to workers
 
   **OpenShift:**
   - Control plane: No BGP
   - Workers (BGP): FRR BGP speakers (AS 64512)
   - Workers (No BGP): Network only, no UDN support
-  - BGP workers receive default route (neighbor default-originate)
-  - BGP workers advertise UDN routes to ToR switch
+  - Each BGP worker advertises: 192.168.100.0/24
+  - Each BGP worker receives: 0.0.0.0/0 (default route)
 
-  **UDN:**
-  - Routes advertised via BGP
-  - Pool: 192.168.100.0/24
+  **UDN (User Defined Network):**
+  - Network: 192.168.100.0/24
+  - Advertised by: All BGP-enabled workers
   - ⚠️ **Only runs on BGP-enabled workers**
   - VMs/Pods requiring UDN must be scheduled on BGP workers
 | {

@@ -48,19 +48,19 @@ worker_layer: OpenShift Workers (BGP Enabled) {
   style.fill: "#e8f5e9"
   style.stroke: "#388e3c"
 
-  worker1: "Worker 1\n10.0.1.21\nBGP: AS 64512\n📦 VMs: 3 | 🔷 UDN Pods: 5" {
+  worker1: "Worker 1\n10.0.1.21\nBGP: AS 64512\n📦 VMs: 3 | 🔷 UDN Pods: 5\n→ Advertises 192.168.100.0/24" {
     shape: rectangle
     style.fill: "#388e3c"
     style.font-color: white
   }
 
-  worker2: "Worker 2\n10.0.1.22\nBGP: AS 64512\n📦 VMs: 2 | 🔷 UDN Pods: 8" {
+  worker2: "Worker 2\n10.0.1.22\nBGP: AS 64512\n📦 VMs: 2 | 🔷 UDN Pods: 8\n→ Advertises 192.168.100.0/24" {
     shape: rectangle
     style.fill: "#388e3c"
     style.font-color: white
   }
 
-  worker3: "Worker 3\n10.0.1.23\nBGP: AS 64512\n📦 VMs: 4 | 🔷 UDN Pods: 3" {
+  worker3: "Worker 3\n10.0.1.23\nBGP: AS 64512\n📦 VMs: 4 | 🔷 UDN Pods: 3\n→ Advertises 192.168.100.0/24" {
     shape: rectangle
     style.fill: "#388e3c"
     style.font-color: white
@@ -85,6 +85,18 @@ worker_no_bgp: OpenShift Workers (No BGP) {
   }
 }
 
+# User Defined Network
+udn_layer: User Defined Network (UDN) {
+  style.fill: "#fff3e0"
+  style.stroke: "#f57c00"
+
+  udn_net: "UDN Network\n192.168.100.0/24\n\nEach BGP worker advertises:\n→ 192.168.100.0/24 to ToR" {
+    shape: hexagon
+    style.fill: "#ff9800"
+    style.font-color: white
+  }
+}
+
 # Network Connections - Control Plane (no BGP)
 switch_layer.switch1 -> control_plane.master1: L2/L3 {
   style.stroke: "#9e9e9e"
@@ -103,15 +115,15 @@ switch_layer.switch1 -> control_plane.master3: L2/L3 {
 }
 
 # BGP Peering - Switch to Workers (UDN Routes)
-switch_layer.switch1 -> worker_layer.worker1: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+switch_layer.switch1 -> worker_layer.worker1: "eBGP\n← 192.168.100.0/24\n→ 0.0.0.0/0 (default)" {
   style.stroke: "#4caf50"
   style.stroke-width: 3
 }
-switch_layer.switch1 -> worker_layer.worker2: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+switch_layer.switch1 -> worker_layer.worker2: "eBGP\n← 192.168.100.0/24\n→ 0.0.0.0/0 (default)" {
   style.stroke: "#4caf50"
   style.stroke-width: 3
 }
-switch_layer.switch1 -> worker_layer.worker3: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+switch_layer.switch1 -> worker_layer.worker3: "eBGP\n← 192.168.100.0/24\n→ 0.0.0.0/0 (default)" {
   style.stroke: "#4caf50"
   style.stroke-width: 3
 }
@@ -125,6 +137,13 @@ switch_layer.switch1 -> worker_no_bgp.worker4: "L2/L3 Only" {
 switch_layer.switch1 -> worker_no_bgp.worker5: "L2/L3 Only" {
   style.stroke: "#9e9e9e"
   style.stroke-width: 1
+  style.stroke-dash: 3
+}
+
+# UDN to BGP workers
+udn_layer.udn_net -> worker_layer: "UDN pods/VMs\nrun on BGP workers" {
+  style.stroke: "#ff9800"
+  style.stroke-width: 2
   style.stroke-dash: 3
 }
 
@@ -148,8 +167,9 @@ network_info: Network Configuration {
   network: "Network: 10.0.1.0/24"
   pod_cidr: "Pod CIDR: 10.128.0.0/14"
   svc_cidr: "Service CIDR: 172.30.0.0/16"
-  udn_pool: "UDN Pool: 192.168.100.0/24"
+  udn_pool: "UDN Network: 192.168.100.0/24"
   bgp_protocol: "BGP: eBGP (Switch AS 65001, Workers AS 64512)"
-  default_route: "Switch: neighbor default-originate"
+  advertised: "Each BGP worker advertises: 192.168.100.0/24"
+  default_route: "Switch advertises: 0.0.0.0/0 (default route)"
   requirement: "⚠️ VMs/Pods requiring UDN must run on BGP-enabled workers"
 }
