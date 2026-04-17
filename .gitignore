@@ -1,0 +1,10 @@
+# Generated diagram files (ignored locally, but force-added by GitHub Actions)
+*.svg
+*.png
+*.pdf
+
+# D2 cache
+.d2-*
+
+# OS files
+.DS_Store

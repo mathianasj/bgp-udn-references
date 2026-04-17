@@ -1,0 +1,20 @@
+#!/bin/bash
+# Pre-commit hook to prevent committing generated diagram files locally
+
+# Check if any generated files are being committed
+GENERATED_FILES=$(git diff --cached --name-only --diff-filter=A | grep -E '\.(svg|png|pdf)$')
+
+if [ -n "$GENERATED_FILES" ]; then
+    echo "❌ ERROR: Attempting to commit generated diagram files!"
+    echo ""
+    echo "Generated files should only be committed by GitHub Actions."
+    echo "The following files were blocked:"
+    echo "$GENERATED_FILES"
+    echo ""
+    echo "These files are in .gitignore and should not be committed manually."
+    echo "Push your .d2 files and let GitHub Actions generate the diagrams."
+    echo ""
+    exit 1
+fi
+
+exit 0

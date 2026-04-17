@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "D2: Watch All Diagrams",
+      "type": "shell",
+      "command": "./watch-all.sh",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "D2: Watch Detailed Diagram",
+      "type": "shell",
+      "command": "d2 -w --layout elk openshift-bgp-network.d2 openshift-bgp-network.svg",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "D2: Watch Simple Diagram",
+      "type": "shell",
+      "command": "d2 -w simple-bgp-config.d2 simple-bgp-config.svg",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "D2: Generate All",
+      "type": "shell",
+      "command": "make all-formats",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

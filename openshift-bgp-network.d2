@@ -1,0 +1,155 @@
+title: OpenShift Cluster - BGP Peering on Machine Network {
+  near: top-center
+  shape: text
+  style.font-size: 24
+  style.bold: true
+}
+
+direction: down
+
+# Switch Layer
+switch_layer: Network Switch {
+  style.fill: "#e3f2fd"
+  style.stroke: "#1976d2"
+
+  switch1: "ToR Switch\nAS 65001\n10.0.1.1\nBGP: neighbor default-originate" {
+    shape: rectangle
+    style.fill: "#1976d2"
+    style.font-color: white
+  }
+}
+
+# OpenShift Control Plane
+control_plane: OpenShift Control Plane {
+  style.fill: "#f3e5f5"
+  style.stroke: "#7b1fa2"
+
+  master1: "Master 1\n10.0.1.11" {
+    shape: rectangle
+    style.fill: "#7b1fa2"
+    style.font-color: white
+  }
+
+  master2: "Master 2\n10.0.1.12" {
+    shape: rectangle
+    style.fill: "#7b1fa2"
+    style.font-color: white
+  }
+
+  master3: "Master 3\n10.0.1.13" {
+    shape: rectangle
+    style.fill: "#7b1fa2"
+    style.font-color: white
+  }
+}
+
+# OpenShift Worker Nodes with BGP
+worker_layer: OpenShift Workers (BGP Enabled) {
+  style.fill: "#e8f5e9"
+  style.stroke: "#388e3c"
+
+  worker1: "Worker 1\n10.0.1.21\nBGP: AS 64512\n📦 VMs: 3 | 🔷 UDN Pods: 5" {
+    shape: rectangle
+    style.fill: "#388e3c"
+    style.font-color: white
+  }
+
+  worker2: "Worker 2\n10.0.1.22\nBGP: AS 64512\n📦 VMs: 2 | 🔷 UDN Pods: 8" {
+    shape: rectangle
+    style.fill: "#388e3c"
+    style.font-color: white
+  }
+
+  worker3: "Worker 3\n10.0.1.23\nBGP: AS 64512\n📦 VMs: 4 | 🔷 UDN Pods: 3" {
+    shape: rectangle
+    style.fill: "#388e3c"
+    style.font-color: white
+  }
+}
+
+# OpenShift Worker Nodes without BGP
+worker_no_bgp: OpenShift Workers (No BGP) {
+  style.fill: "#ffebee"
+  style.stroke: "#c62828"
+
+  worker4: "Worker 4\n10.0.1.24\nNo BGP\n❌ No UDN workloads" {
+    shape: rectangle
+    style.fill: "#e57373"
+    style.font-color: white
+  }
+
+  worker5: "Worker 5\n10.0.1.25\nNo BGP\n❌ No UDN workloads" {
+    shape: rectangle
+    style.fill: "#e57373"
+    style.font-color: white
+  }
+}
+
+# Network Connections - Control Plane (no BGP)
+switch_layer.switch1 -> control_plane.master1: L2/L3 {
+  style.stroke: "#9e9e9e"
+  style.stroke-width: 1
+  style.stroke-dash: 3
+}
+switch_layer.switch1 -> control_plane.master2: L2/L3 {
+  style.stroke: "#9e9e9e"
+  style.stroke-width: 1
+  style.stroke-dash: 3
+}
+switch_layer.switch1 -> control_plane.master3: L2/L3 {
+  style.stroke: "#9e9e9e"
+  style.stroke-width: 1
+  style.stroke-dash: 3
+}
+
+# BGP Peering - Switch to Workers (UDN Routes)
+switch_layer.switch1 -> worker_layer.worker1: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+  style.stroke: "#4caf50"
+  style.stroke-width: 3
+}
+switch_layer.switch1 -> worker_layer.worker2: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+  style.stroke: "#4caf50"
+  style.stroke-width: 3
+}
+switch_layer.switch1 -> worker_layer.worker3: "eBGP\n← UDN Routes\n→ neighbor default-originate" {
+  style.stroke: "#4caf50"
+  style.stroke-width: 3
+}
+
+# Network Only - Workers without BGP
+switch_layer.switch1 -> worker_no_bgp.worker4: "L2/L3 Only" {
+  style.stroke: "#9e9e9e"
+  style.stroke-width: 1
+  style.stroke-dash: 3
+}
+switch_layer.switch1 -> worker_no_bgp.worker5: "L2/L3 Only" {
+  style.stroke: "#9e9e9e"
+  style.stroke-width: 1
+  style.stroke-dash: 3
+}
+
+# Legend
+legend: Legend {
+  near: bottom-right
+  style.fill: "#fafafa"
+  style.stroke: "#757575"
+
+  bgp_line: "Green (Solid) = BGP Peering (UDN enabled)"
+  network_line: "Gray (Dashed) = Network Only (No BGP)"
+  note: "UDN requires BGP peering to switch"
+}
+
+# Network Details Box
+network_info: Network Configuration {
+  near: top-right
+  style.fill: "#fff9c4"
+  style.stroke: "#f57f17"
+
+  network: "Network: 10.0.1.0/24"
+  pod_cidr: "Pod CIDR: 10.128.0.0/14"
+  svc_cidr: "Service CIDR: 172.30.0.0/16"
+  udn_pool: "UDN Pool: 192.168.100.0/24"
+  bgp_protocol: "BGP: eBGP (Switch AS 65001, Workers AS 64512)"
+  default_route: "Switch: neighbor default-originate"
+  requirement: "⚠️ VMs/Pods requiring UDN must run on BGP-enabled workers"
+}
