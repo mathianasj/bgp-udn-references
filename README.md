@@ -90,6 +90,34 @@ UDN Pool:     192.168.100.0/24
 
 Workloads scheduled on non-BGP workers will not have their routes advertised and will be unreachable from the network.
 
+### ⚠️ BGP Must Use Machine Network (Known Limitation)
+
+**BGP peering for UDN route advertisement MUST occur on the machine network (the primary node management interface).**
+
+This is a known limitation tracked in **[OCPBUGS-78984](https://redhat.atlassian.net/browse/OCPBUGS-78984)**.
+
+**The Problem:**
+When attempting to use a secondary NIC with a VRF and targeting that VRF with a CUDN and RouteAdvertisements:
+- Routes from the secondary NIC cannot route incoming traffic into the CUDN VRF
+- The route is not automatically added to the target VRF route table
+- Return traffic creates a routing loop (goes back out the default route of the VRF)
+
+**Why This Happens:**
+The VRF route table on the secondary NIC should have a dynamically created route to forward CUDN traffic to the CUDN VRF route table interface, but this route is not automatically created.
+
+**Workaround (Manual Route Configuration):**
+You can manually define route rules to make secondary NICs work:
+
+```yaml
+route-rules:
+  config:
+    - ip-to: 192.168.120.0/24     # UDN subnet
+      route-table: 1010            # Route table created for UDN
+```
+
+**Recommended Approach:**
+Use the **machine network** for BGP peering where route advertisement works automatically without manual intervention. This is the configuration shown in all diagrams in this repository.
+
 ## Architecture Benefits
 
 1. **Simplified Network Design**
