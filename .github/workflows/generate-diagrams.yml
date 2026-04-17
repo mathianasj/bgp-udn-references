@@ -25,7 +25,8 @@ jobs:
       - name: Install D2
         run: |
           curl -fsSL https://d2lang.com/install.sh | sh -s --
-          sudo mv bin/d2 /usr/local/bin/
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
           d2 --version
 
       - name: Generate diagrams (SVG, PNG, PDF)
