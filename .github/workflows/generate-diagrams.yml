@@ -4,12 +4,15 @@ on:
   push:
     paths:
       - '**.d2'
+      - '.github/workflows/generate-diagrams.yml'
     branches:
       - main
       - master
   pull_request:
     paths:
       - '**.d2'
+      - '.github/workflows/generate-diagrams.yml'
+  workflow_dispatch:
 
 jobs:
   generate-svg:
